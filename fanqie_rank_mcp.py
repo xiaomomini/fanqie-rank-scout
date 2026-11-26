@@ -165,6 +165,7 @@ def tool_scan(args):
         rows.append({
             "category": name,
             "rank_path": path,
+            "top_book_id": items[0].get("book_id"),
             "top_title": PUA_RE.sub("□", items[0].get("title") or ""),
             "top_read": reads[0],
             "median_read": int(statistics.median(reads)),
@@ -174,6 +175,21 @@ def tool_scan(args):
 
     rows.sort(key=lambda r: r["median_read"], reverse=True)
     rows = rows[:top_n]
+
+    # 榜单页书名有字体混淆，只给返回的这几行反查详情页（3-10 次请求，并行）
+    def fix_title(row):
+        if not row.get("top_book_id"):
+            return row
+        try:
+            row["top_title"] = resolve_book(row["top_book_id"]).get("title") or row["top_title"]
+        except Exception:
+            pass
+        return row
+
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        rows = list(pool.map(fix_title, rows))
+
     out = ["| 分类 | 在读中位 | 前10合计 | 榜一 | 榜一在读 |",
            "|---|---|---|---|---|"]
     for r in rows:
@@ -239,7 +255,7 @@ TOOLS = [
         "name": "scan_categories",
         "title": "分类热度扫描",
         "description": ("扫一个板块的全部分类，按「前 10 在读中位数」排序，回答「现在哪个分类还有人看」。"
-                        "一次请求几十个榜单页，约 20-40 秒。"),
+                        "一次请求几十个榜单页，约 30-50 秒。"),
         "inputSchema": {
             "type": "object",
             "properties": {
