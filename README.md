@@ -5,6 +5,7 @@
 
 **关键词**：番茄小说 · 番茄榜单 · 榜单数据 · 扫榜 · 选材 · 网文数据 · 网文选题 · 在读人数 · 题材热度 · 分类热度 ·
 新书榜 · 阅读榜 · 男频 · 女频 · 都市脑洞 · 悬疑脑洞 · 都市高武 · 网文写作 · AI 网文 · 爬虫 · Python · 零依赖 ·
+MCP · MCP Server · Model Context Protocol · Claude · Cursor · Cline ·
 fanqie · fanqienovel · webnovel · rank tracker · webnovel data
 
 **不用登录、不用 Cookie、不用 Playwright、不用任何第三方库，只要 Python 3.8+。**
@@ -15,6 +16,54 @@ python3 fanqie_rank_scout.py -b male-read -c 悬疑脑洞
 python3 fanqie_rank_scout.py -b male-new --scan  # 扫全部分类，按热度排序
 python3 fanqie_rank_scout.py -c 都市脑洞 --csv 都市脑洞.csv
 ```
+
+## 当 MCP Server 用（Claude Desktop / Cursor / Cline / Continue）
+
+同一份代码也是 MCP Server，模型可以自己调榜单，不用你手敲命令。
+
+```bash
+uvx --from git+https://github.com/xiaomomini/fanqie-rank-scout fanqie-rank-mcp
+```
+
+写进客户端配置（Claude Desktop 的 `claude_desktop_config.json`、Cursor 的 `mcp.json`、Cline 的 MCP Servers）：
+
+```json
+{
+  "mcpServers": {
+    "fanqie-rank": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/xiaomomini/fanqie-rank-scout", "fanqie-rank-mcp"]
+    }
+  }
+}
+```
+
+不想装 uv 就直接指向脚本（绝对路径）：
+
+```json
+{"mcpServers": {"fanqie-rank": {"command": "python3", "args": ["/绝对路径/fanqie_rank_mcp.py"]}}}
+```
+
+三个工具：
+
+| 工具 | 参数 | 作用 |
+|---|---|---|
+| `rank_list` | `board`, `category`, `limit`, `resolve` | 某分类前 10 名：书名/作者/在读/字数/在读密度 |
+| `list_categories` | `board` | 该板块全部可查分类（男频新书榜 19 个、女频 18 个） |
+| `scan_categories` | `board`, `top` | 扫全部分类，按前 10 在读中位数排序，找还有流量的分类 |
+
+装好后直接问：「番茄男频新书榜都市脑洞现在谁在榜上」「扫一下女频新书榜，哪个分类还有读者」。
+
+实测（官方 `mcp` Python SDK 客户端，`initialize` → `tools/list` → `tools/call` 全过，协议 2025-06-18）：
+
+```
+榜单：女频新书榜 · 古言脑洞（前 3，共 3 条）
+| 排名 | 书名 | 作者 | 在读 | 字数(万) | 在读/万字 | 状态 |
+| 1 | 始皇陛下，太子扶苏他又在演！ | 思不诗 | 17万 | 19.8 | 0.86 | 连载中 |
+| 2 | 听真千金心声，皇城权贵瑟瑟发抖 | 凤点江山 | 16.4万 | 28.8 | 0.57 | 已完结 |
+| 3 | 我，曹操之女，被金榜曝光了 | 冰镇蜜瓜 | 14.8万 | 18.2 | 0.81 | 连载中 |
+```
+
 
 ## 真实输出（2026-11-24 抓取，男频新书榜 · 都市脑洞）
 

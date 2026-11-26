@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fanqie-rank-scout"
+version = "1.1.0"
+description = "番茄小说公开榜单选材工具：匿名抓榜，看分类热度与在读/字数比。同时是一个 MCP Server（rank_list / list_categories / scan_categories），零依赖。"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "xiaomomini" }]
+keywords = ["fanqie", "fanqienovel", "webnovel", "rank", "scraper", "mcp", "mcp-server", "番茄小说", "榜单"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/xiaomomini/fanqie-rank-scout"
+Issues = "https://github.com/xiaomomini/fanqie-rank-scout/issues"
+
+[project.scripts]
+fanqie-rank-scout = "fanqie_rank_scout:main"
+fanqie-rank-mcp = "fanqie_rank_mcp:main"
+
+[tool.setuptools]
+py-modules = ["fanqie_rank_scout", "fanqie_rank_mcp"]
