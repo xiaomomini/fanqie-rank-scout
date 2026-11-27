@@ -154,6 +154,11 @@ def render(data):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>番茄小说榜单数据 · %(day)s · 每日自动更新</title>
 <meta name="description" content="番茄小说四大榜单 TOP10 与各分类在读热度，每天自动更新。看哪个分类还有流量、在读/字数比多少，判断题材还值不值得写。">
+<meta property="og:title" content="番茄小说榜单数据 · 每日快照">
+<meta property="og:description" content="四大榜单 TOP10 + 74 个分类的在读中位数与日变化，含「在读/万字」读者密度。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="preview.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{--bg:#0f1115;--fg:#e6e6e6;--dim:#8b949e;--line:#232830;--acc:#4ea1ff}
 *{box-sizing:border-box}
