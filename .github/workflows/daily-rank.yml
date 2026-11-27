@@ -1,0 +1,46 @@
+name: daily-rank
+
+on:
+  schedule:
+    # 07:40 UTC = 15:40 北京，平台每天 15:00 前更新榜单数据
+    - cron: "40 7 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_site.py"
+      - "fanqie_rank_scout.py"
+      - ".github/workflows/daily-rank.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-rank
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build rank site
+        run: python scripts/build_site.py
+
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "rank: $(date -u +%Y-%m-%d) snapshot"
+            git push
+          fi
