@@ -152,7 +152,7 @@ def render(data):
     html = """<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>番茄小说榜单数据 · %(day)s · 每日自动更新</title>
+<title>番茄小说榜单数据 · %(day)s · 每日快照</title>
 <meta name="description" content="番茄小说四大榜单 TOP10 与各分类在读热度，每天自动更新。看哪个分类还有流量、在读/字数比多少，判断题材还值不值得写。">
 <meta property="og:title" content="番茄小说榜单数据 · 每日快照">
 <meta property="og:description" content="四大榜单 TOP10 + 74 个分类的在读中位数与日变化，含「在读/万字」读者密度。">
@@ -183,7 +183,7 @@ footer{margin-top:36px;color:var(--dim);font-size:12.5px;border-top:1px solid va
 a{color:var(--acc)}
 </style></head><body><div class=wrap>
 <h1>番茄小说榜单数据</h1>
-<div class=sub>%(day)s 生成 · 每天自动更新 · 数据取自番茄小说公开榜单页（无需登录），在读为平台口径</div>
+<div class=sub>%(day)s 生成 · 每天刷新一次快照 · 数据取自番茄小说公开榜单页（无需登录），在读为平台口径</div>
 %(boards)s
 <h2>分类热度 <small>· 前 10 在读中位数，看哪个分类还有流量（%(prevnote)s）</small></h2>
 <div class=grid>%(heat)s</div>
