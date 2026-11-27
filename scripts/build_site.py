@@ -74,6 +74,29 @@ def scan(menu, key):
     return {"board": name, "rows": out}
 
 
+def load_prev():
+    """读上一份快照（除今天外最新的 history 文件），用于算日变化。"""
+    hist_dir = os.path.join(DATA, "history")
+    if not os.path.isdir(hist_dir):
+        return None, {}
+    files = sorted(f for f in os.listdir(hist_dir) if f.endswith(".json"))
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d") + ".json"
+    prev = [f for f in files if f != today]
+    if not prev:
+        return None, {}
+    path = os.path.join(hist_dir, prev[-1])
+    try:
+        with open(path, encoding="utf-8") as fh:
+            d = json.load(fh)
+    except Exception:
+        return None, {}
+    idx = {}
+    for s in d.get("scans", []):
+        for r in s.get("rows", []):
+            idx[(s["board"], r["category"])] = r.get("median_read")
+    return d.get("generated_at", "")[:10], idx
+
+
 def wan(v):
     if not v:
         return "-"
@@ -108,11 +131,23 @@ def render(data):
     for s in data["scans"]:
         trs = []
         for r in s["rows"][:12]:
-            trs.append("<tr><td class=t>%s</td><td class=r>%s</td><td class=r>%s</td></tr>" % (
-                esc(r["category"]), wan(r["median_read"]), wan(r["top_read"])))
+            d = r.get("delta")
+            if d is None:
+                dcell = "<td class=r>—</td>"
+            elif d == 0:
+                dcell = "<td class='r flat'>0</td>"
+            else:
+                cls = "up" if d > 0 else "down"
+                sign = "+" if d > 0 else "−"
+                dcell = "<td class='r %s'>%s%s</td>" % (cls, sign, wan(abs(d)))
+            trs.append("<tr><td class=t>%s</td><td class=r>%s</td>%s<td class=r>%s</td></tr>" % (
+                esc(r["category"]), wan(r["median_read"]), dcell, wan(r["top_read"])))
         heat.append('<div class=card><h3>%s</h3><table><thead><tr><th>分类</th>'
-                    "<th>在读中位</th><th>榜首在读</th></tr></thead><tbody>%s</tbody></table></div>"
+                    "<th>在读中位</th><th>日变化</th><th>榜首在读</th></tr></thead><tbody>%s</tbody></table></div>"
                     % (esc(s["board"]), "".join(trs)))
+
+    prev_day = data.get("prev_day")
+    prev_note = ("与 %s 对比" % esc(prev_day)) if prev_day else "首份快照，明日起显示日变化"
 
     html = """<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
@@ -136,6 +171,7 @@ td.n{color:var(--dim);width:28px}
 td.t{max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.a{color:var(--dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.r{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:#3fb950}.down{color:#f85149}.flat{color:var(--dim)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
 .card{background:#14181f;border:1px solid var(--line);border-radius:8px;padding:14px}
 footer{margin-top:36px;color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
@@ -144,15 +180,15 @@ a{color:var(--acc)}
 <h1>番茄小说榜单数据</h1>
 <div class=sub>%(day)s 生成 · 每天自动更新 · 数据取自番茄小说公开榜单页（无需登录），在读为平台口径</div>
 %(boards)s
-<h2>分类热度 <small>· 前 10 在读中位数，看哪个分类还有流量</small></h2>
+<h2>分类热度 <small>· 前 10 在读中位数，看哪个分类还有流量（%(prevnote)s）</small></h2>
 <div class=grid>%(heat)s</div>
 <footer>
 在读/万字 = 在读人数 ÷ 字数（万），越高说明这个题材用更少的字数拿到更多读者。<br>
 数据来源：<a href="https://github.com/xiaomomini/fanqie-rank-scout">xiaomomini/fanqie-rank-scout</a>
 （同名 CLI / MCP Server，可本地跑、可让模型调用）。
-本页由 GitHub Actions 每天自动生成，机器可读数据：<a href="data/latest.json">data/latest.json</a>。
+本页每天刷新一版快照，机器可读数据：<a href="data/latest.json">data/latest.json</a>。
 </footer></div></body></html>
-""" % {"day": day, "boards": "".join(parts), "heat": "".join(heat)}
+""" % {"day": day, "boards": "".join(parts), "heat": "".join(heat), "prevnote": prev_note}
     return html
 
 
@@ -181,6 +217,16 @@ def main():
     if not data["boards"]:
         sys.stderr.write("没有任何榜单数据，放弃写入\n")
         return 1
+
+    prev_day, prev_idx = load_prev()
+    if prev_day:
+        data["prev_day"] = prev_day
+        for s in data["scans"]:
+            for r in s["rows"]:
+                old = prev_idx.get((s["board"], r["category"]))
+                r["delta"] = (r["median_read"] - old) if (old and r["median_read"]) else None
+        print("delta vs %s: %d category rows" % (
+            prev_day, sum(1 for s in data["scans"] for r in s["rows"] if r.get("delta") is not None)))
 
     os.makedirs(os.path.join(DATA, "history"), exist_ok=True)
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
