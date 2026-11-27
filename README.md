@@ -10,6 +10,12 @@ fanqie · fanqienovel · webnovel · rank tracker · webnovel data
 
 **不用登录、不用 Cookie、不用 Playwright、不用任何第三方库，只要 Python 3.8+。**
 
+## 先看网页版：每日榜单数据
+
+不想装东西？直接看 **[番茄小说榜单数据 · 每日更新](https://xiaomomini.github.io/fanqie-rank-scout/)** ——
+四大榜单 TOP10 + 74 个分类的在读中位数，含「在读/万字」读者密度，每天刷新一版快照。
+机器可读：`https://xiaomomini.github.io/fanqie-rank-scout/data/latest.json`。
+
 ```bash
 python3 fanqie_rank_scout.py                     # 男频新书榜 · 都市脑洞
 python3 fanqie_rank_scout.py -b male-read -c 悬疑脑洞
