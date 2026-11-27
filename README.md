@@ -16,6 +16,8 @@ fanqie · fanqienovel · webnovel · rank tracker · webnovel data
 四大榜单 TOP10 + 74 个分类的在读中位数，含「在读/万字」读者密度，每天刷新一版快照。
 机器可读：`https://xiaomomini.github.io/fanqie-rank-scout/data/latest.json`。
 
+[![榜单数据页预览](https://xiaomomini.github.io/fanqie-rank-scout/preview.png)](https://xiaomomini.github.io/fanqie-rank-scout/)
+
 ```bash
 python3 fanqie_rank_scout.py                     # 男频新书榜 · 都市脑洞
 python3 fanqie_rank_scout.py -b male-read -c 悬疑脑洞
